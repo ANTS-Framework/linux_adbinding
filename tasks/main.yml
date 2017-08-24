@@ -1,0 +1,38 @@
+---
+  - name: Installing SSSD and Kerberos dependencies using yum
+    yum:
+        name: {{ linux_adbinding__dependencies_yum }}
+        state: present
+    when: ansible_pkg_mgr == yum
+
+  - name: Installing SSSD and Kerberos dependencies using apt
+    yum:
+        name: {{ linux_adbinding__dependencies_apt }}
+        state: present
+    when: ansible_pkg_mgr == apt
+
+  - name: Creating SSSD configuration
+    template:
+        src: "sssd.conf.j2"
+        dest: "/etc/sssd/sssd.conf"
+        mode: 0600
+        owner: root
+        group: root
+    notify:
+    - restart sssd
+
+  - name: Creating Kerberos configuration
+    template:
+        src: "krb5.conf.j2"
+        dest: "/etc/krb5.conf"
+        mode: 0644
+        owner: root
+        group: root
+
+  - name: Joining AD
+    command: /bin/bash -c "echo -n {{ linux_adbinding__password}} | /usr/sbin/adcli join -U {{ linux_adbinding__user }} --stdin-password -O {{ linux_adbinding__ou }} {{ linux_adbinding__domain }}"
+    args:
+        creates: /etc/krb5.keytab
+    notify:
+    - configure pam
+    - restart sssd

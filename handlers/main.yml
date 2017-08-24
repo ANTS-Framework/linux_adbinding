@@ -1,0 +1,12 @@
+---
+  - name: restart sssd
+    service:
+      name: sssd
+      enabled: yes
+      state: restarted
+    ignore_errors: yes
+
+  - name: configure pam
+    command: /usr/sbin/authconfig --enablesssd --enablesssdauth --enablemkhomedir --enablekrb5 --update
+    notify:
+    - restart sssd

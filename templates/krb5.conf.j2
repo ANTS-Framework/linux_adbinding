@@ -1,0 +1,12 @@
+includedir /var/lib/sss/pubconf/krb5.include.d/
+[libdefaults]
+ default_realm = {{ linux_adbinding__domain }}
+ dns_lookup_realm = true
+ dns_lookup_kdc = true
+ ticket_lifetime = 24h
+ renew_lifetime = 7d
+ rdns = false
+ forwardable = yes
+
+[logging]
+ default = FILE:/var/log/krb5libs.log
