@@ -11,16 +11,6 @@
       state: present
     when: ansible_pkg_mgr == "apt"
 
-  - name: Creating SSSD configuration
-    template:
-        src: "sssd.conf.j2"
-        dest: "/etc/sssd/sssd.conf"
-        mode: 0600
-        owner: root
-        group: root
-    notify:
-    - restart sssd
-
   - name: Creating Realmd configuration
     template:
       src: "realmd.conf.j2"
@@ -36,6 +26,18 @@
         mode: 0644
         owner: root
         group: root
+
+  - name: modify SSSD config to account for some Oddities, need to move these into specifying as vars
+    ini_file:
+      dest: /etc/sssd/sssd.conf
+      section: "{{ item.section }}"
+      option: "{{ item.option }}"
+      value: "{{ item.value }}"
+    with_items:
+      - { section: 'domain/{{ linux_adbinding__domain }}', option: override_shell, value: /bin/bash }
+      - { section: 'domain/{{ linux_adbinding__domain }}', option: override_homedir, value: /home/%u }
+      - { section: 'domain/{{ linux_adbinding__domain }}', option: enumerate, value: FALSE }
+      - { section: 'domain/{{ linux_adbinding__domain }}', option: ad_gpo_access_control, value: disabled }
 
   - name: Joining AD
     command: /bin/bash -c "echo -n {{ linux_adbinding__password}} | /usr/sbin/realm join -U {{ linux_adbinding__user }} {{ linux_adbinding__domain }}"
