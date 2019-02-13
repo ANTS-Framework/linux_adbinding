@@ -21,6 +21,14 @@
     notify:
     - restart sssd
 
+  - name: Creating Realmd configuration
+    template:
+      src: "realmd.conf.j2"
+      dest: "/etc/realmd.conf"
+      mode: 0644
+      owner: root
+      group: root
+
   - name: Creating Kerberos configuration
     template:
         src: "krb5.conf.j2"
