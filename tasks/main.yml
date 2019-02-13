@@ -34,5 +34,6 @@
     args:
         creates: /etc/krb5.keytab
     notify:
-    - configure pam
+    - configure pam for centos
+    - configure pam for ubuntu  
     - restart sssd
