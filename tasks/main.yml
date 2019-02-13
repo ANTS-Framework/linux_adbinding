@@ -1,15 +1,15 @@
 ---
-  - name: Installing SSSD and Kerberos dependencies using yum
+  - name: Installing Realmd, SSSD, and Kerberos dependencies using yum
     yum:
-        name: {{ linux_adbinding__dependencies_yum }}
-        state: present
-    when: ansible_pkg_mgr == yum
+      name: "{{ linux_adbinding__dependencies_yum }}"
+      state: present
+    when: ansible_pkg_mgr == "yum"
 
-  - name: Installing SSSD and Kerberos dependencies using apt
-    yum:
-        name: {{ linux_adbinding__dependencies_apt }}
-        state: present
-    when: ansible_pkg_mgr == apt
+  - name: Installing Realmd, SSSD, and Kerberos dependencies using apt
+    apt:
+      name: "{{ linux_adbinding__dependencies_apt }}"
+      state: present
+    when: ansible_pkg_mgr == "apt"
 
   - name: Creating SSSD configuration
     template:
