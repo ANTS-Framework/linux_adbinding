@@ -6,7 +6,19 @@
       state: restarted
     ignore_errors: yes
 
-  - name: configure pam
+  - name: configure pam for centos
     command: /usr/sbin/authconfig --enablesssd --enablesssdauth --enablemkhomedir --enablekrb5 --update
+    when: ansible_distribution == 'Redhat' or ansible_distribution == 'Centos'
+    notify:
+    - restart sssd
+
+  - name: configure pam for ubuntu
+    lineinfile:
+      dest: /etc/pam.d/common-session
+      insertbefore: "# end of pam-auth-update config"
+      #line: "session required pam_mkhomedir.so skel=/etc/skel/ umask=0077"
+      #line: "session required pam_mkhomedir.so skel=/etc/skel/ umask=0022"
+      line: "session required   pam_mkhomedir.so"
+    when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
     notify:
     - restart sssd
