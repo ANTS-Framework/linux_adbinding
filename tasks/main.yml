@@ -38,10 +38,11 @@
         group: root
 
   - name: Joining AD
-    command: /bin/bash -c "echo -n {{ linux_adbinding__password}} | /usr/sbin/adcli join -U {{ linux_adbinding__user }} --stdin-password -O {{ linux_adbinding__ou }} {{ linux_adbinding__domain }}"
+    command: /bin/bash -c "echo -n {{ linux_adbinding__password}} | /usr/sbin/realm join -U {{ linux_adbinding__user }} {{ linux_adbinding__domain }}"
     args:
         creates: /etc/krb5.keytab
     notify:
     - configure pam for centos
     - configure pam for ubuntu  
     - restart sssd
+
