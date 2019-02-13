@@ -4,20 +4,15 @@
     linux_adbinding__user: bind-user
     linux_adbinding__password: bind-users-password
     linux_adbinding__dependencies_yum:
+        - realmd
         - sssd
-        - sssd-ad
-        - sssd-client
-        - sssd-common
-        - sssd-common-pac
-        - sssd-krb5
-        - sssd-krb5-common
-        - adcli
         - krb5-libs
         - krb5-workstation
         - pam_krb5
         - authconfig
         - oddjob
         - oddjob-mkhomedir
+        - samba-common-tools
     linux_adbinding__dependencies_apt:
         - realmd
         - sssd
