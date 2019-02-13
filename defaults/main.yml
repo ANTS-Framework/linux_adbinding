@@ -19,4 +19,12 @@
         - oddjob
         - oddjob-mkhomedir
     linux_adbinding__dependencies_apt:
+        - realmd
         - sssd
+        - sssd-tools
+        - libnss-sss
+        - libpam-sss
+        - adcli
+        - samba-common-bin
+        - krb5-user
+
