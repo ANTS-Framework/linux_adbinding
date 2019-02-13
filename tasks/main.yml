@@ -11,6 +11,25 @@
       state: present
     when: ansible_pkg_mgr == "apt"
 
+  - name: Run Realm discover if not specified yet
+    shell: /bin/bash -c "/usr/sbin/realm discover | grep "domain-name" | head -n 1 | sed 's/.*:\s*//'"
+    register: realm_discover_output
+    changed_when: false
+    when: linux_adbinding__domain is undefined or linux_adbinding__domain == ''
+
+  - name: set fact for discovered variable
+    set_fact:
+      linux_adbinding__domain: "{{ realm_discover_output.stdout }}"
+    when: linux_adbinding__domain is undefined or linux_adbinding__domain == ''
+
+  - debug:
+      msg: "Specified or discovered domain is: {{ linux_adbinding__domain }}"
+
+  - name: fail if nothing specified or discovered
+    assert:
+      that:
+        - linux_adbinding__domain != ""
+
   - name: Creating Realmd configuration
     template:
       src: "realmd.conf.j2"

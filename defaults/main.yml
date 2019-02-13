@@ -1,5 +1,5 @@
 ---
-    linux_adbinding__domain: ADS.EXAMPLE.ORG
+    #linux_adbinding__domain: ADS.EXAMPLE.ORG
     linux_adbinding__ou: CN=Computers,DC=ADS,DC=EXAMPLE,DC=ORG
     linux_adbinding__user: bind-user
     linux_adbinding__password: bind-users-password
