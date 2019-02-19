@@ -24,6 +24,7 @@
 
   - debug:
       msg: "Specified or discovered domain is: {{ linux_adbinding__domain }}"
+      verbosity: 2
 
   - name: fail if nothing specified or discovered
     assert:
