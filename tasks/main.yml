@@ -1,38 +1,72 @@
 ---
-  - name: Installing SSSD and Kerberos dependencies using yum
+  - name: Installing Realmd, SSSD, and Kerberos dependencies using yum
     yum:
-        name: {{ linux_adbinding__dependencies_yum }}
-        state: present
-    when: ansible_pkg_mgr == yum
+      name: "{{ linux_adbinding__dependencies_yum }}"
+      state: present
+    when: ansible_pkg_mgr == "yum"
 
-  - name: Installing SSSD and Kerberos dependencies using apt
-    yum:
-        name: {{ linux_adbinding__dependencies_apt }}
-        state: present
-    when: ansible_pkg_mgr == apt
+  - name: Installing Realmd, SSSD, and Kerberos dependencies using apt
+    apt:
+      name: "{{ linux_adbinding__dependencies_apt }}"
+      state: present
+    when: ansible_pkg_mgr == "apt"
 
-  - name: Creating SSSD configuration
+  - name: Run Realm discover if not specified yet
+    shell: /bin/bash -c "/usr/sbin/realm discover | grep "domain-name" | head -n 1 | sed 's/.*:\s*//'"
+    register: realm_discover_output
+    changed_when: false
+    when: linux_adbinding__domain is undefined or linux_adbinding__domain == ''
+
+  - name: set fact for discovered variable
+    set_fact:
+      linux_adbinding__domain: "{{ realm_discover_output.stdout }}"
+    when: linux_adbinding__domain is undefined or linux_adbinding__domain == ''
+
+  - debug:
+      msg: "Specified or discovered domain is: {{ linux_adbinding__domain }}"
+      verbosity: 2
+
+  - name: fail if nothing specified or discovered
+    assert:
+      that:
+        - linux_adbinding__domain != ""
+
+  - name: Creating Realmd configuration
     template:
-        src: "sssd.conf.j2"
-        dest: "/etc/sssd/sssd.conf"
-        mode: 0600
-        owner: root
-        group: root
-    notify:
-    - restart sssd
+      src: "realmd.conf.j2"
+      dest: "/etc/realmd.conf"
+      mode: 0644
+      owner: root
+      group: root
 
   - name: Creating Kerberos configuration
     template:
-        src: "krb5.conf.j2"
-        dest: "/etc/krb5.conf"
-        mode: 0644
-        owner: root
-        group: root
+      src: "krb5.conf.j2"
+      dest: "/etc/krb5.conf"
+      mode: 0644
+      owner: root
+      group: root
 
   - name: Joining AD
-    command: /bin/bash -c "echo -n {{ linux_adbinding__password}} | /usr/sbin/adcli join -U {{ linux_adbinding__user }} --stdin-password -O {{ linux_adbinding__ou }} {{ linux_adbinding__domain }}"
+    command: /bin/bash -c "echo -n {{ linux_adbinding__password}} | /usr/sbin/realm join -U {{ linux_adbinding__user }} {{ linux_adbinding__domain }}"
     args:
-        creates: /etc/krb5.keytab
+      creates: /etc/krb5.keytab
     notify:
-    - configure pam
-    - restart sssd
+      - configure pam for centos
+      - configure pam for ubuntu  
+      - restart sssd
+
+  - name: modify SSSD config to account for some Oddities, need to move these into specifying as vars
+    ini_file:
+      dest: /etc/sssd/sssd.conf
+      section: "{{ item.section }}"
+      option: "{{ item.option }}"
+      value: "{{ item.value }}"
+    with_items:
+      - { section: 'domain/{{ linux_adbinding__domain }}', option: override_shell, value: /bin/bash }
+      - { section: 'domain/{{ linux_adbinding__domain }}', option: override_homedir, value: /home/%u }
+      - { section: 'domain/{{ linux_adbinding__domain }}', option: enumerate, value: FALSE }
+      - { section: 'domain/{{ linux_adbinding__domain }}', option: ad_gpo_access_control, value: disabled }
+    notify:
+      - restart sssd
+  
