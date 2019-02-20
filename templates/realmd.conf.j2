@@ -7,6 +7,7 @@ default-home = /home/%u
 default-shell = /bin/bash
 
 [{{ linux_adbinding__domain }}]
-computer-ou = {{ linux_adbinding__ou }}
+{% if linux_adbinding__ou is defined %}computer-ou = {{ linux_adbinding__ou }}
+{% endif %}
 fully-qualified-names = no
 automatic-id-mapping = no
